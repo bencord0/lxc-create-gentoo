@@ -14,7 +14,7 @@ function _network_config {
 
 function _file_config {
     mkdir -p /root/.ssh && \
-    mv /tmp/openssh-key /root/.ssh/authorized_keys && \
+    mv /etc/local.d/openssh-key /root/.ssh/authorized_keys && \
     chmod u=rX,go= -R /root/.ssh
     
     test _"$(head -c2 /etc/local.d/user-data)" == '_#!' && {

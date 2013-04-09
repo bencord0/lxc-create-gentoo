@@ -1,12 +1,50 @@
 #!/bin/bash
+
+usage() {
+	echo "$0: [-h] [-k keyfile] [-u user-data]"
+}
+
+_abspath() {
+	base=$(basename "$1")
+	root="$(cd "$(dirname "$1")" && pwd)"
+	echo "$root/$base"
+}
+
+SSH_KEYS=""
+USER_DATA=""
+echo "$@"
+while :
+do
+    case "$1" in
+	-k)
+		SSH_KEYS+="$(_abspath "$2")"
+		shift 2
+		;;
+	-u)
+		USER_DATA+="$(_abspath "$2")"
+		shift 2
+		;;
+	-h)
+		usage
+		exit 0
+		;;
+	*)
+		shift
+		break
+		;;
+    esac
+done
+
+echo "ssh keyfile: $SSH_KEYS"
+echo "user-data: $USER_DATA"
 ############################
 # Create the container
 ############################
 
-LXC_ROOT=$(dirname "${BASH_SOURCE[0]}")
+LXC_ROOT=/etc/lxc
 echo "LXC_ROOT is $LXC_ROOT"
 
-uts="${1:-$(uuidgen|cut -d- -f1)}"
+uts="$(uuidgen|cut -d- -f1)"
 echo "Creating container: $uts"
 
 cd "$LXC_ROOT"
@@ -15,6 +53,15 @@ sed "s/++NAME++/${uts}/" "${LXC_ROOT}/.lxc-template/config" \
 	> "${LXC_ROOT}/${uts}/config"
 
 lvcreate -s vg/lxc-clean -n "${uts}" -L 10G
+
+############################
+# Modify the container
+############################
+mountdir=$(mktemp -d)
+mount "/dev/vg/${uts}" $mountdir
+cp "$SSH_KEYS"  $mountdir/etc/local.d/openssh-key
+cp "$USER_DATA" $mountdir/etc/local.d/user-data
+umount $mountdir
 
 ############################
 # Spawn the container
