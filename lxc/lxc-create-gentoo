@@ -1,0 +1,30 @@
+#!/bin/bash
+############################
+# Create the container
+############################
+
+LXC_ROOT=$(dirname "${BASH_SOURCE[0]}")
+echo "LXC_ROOT is $LXC_ROOT"
+
+uts="${1:-$(uuidgen|cut -d- -f1)}"
+echo "Creating container: $uts"
+
+cd "$LXC_ROOT"
+mkdir -p "${LXC_ROOT}/${uts}/rootfs"
+sed "s/++NAME++/${uts}/" "${LXC_ROOT}/.lxc-template/config" \
+	> "${LXC_ROOT}/${uts}/config"
+
+lvcreate -s vg/lxc-clean -n "${uts}" -L 10G
+
+############################
+# Spawn the container
+############################
+
+lxc-start -n "${uts}"
+
+############################
+# Destroy the container
+############################
+
+lvremove -f "vg/${uts}"
+rm -rvf "${LXC_ROOT}/${uts}"
