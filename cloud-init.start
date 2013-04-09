@@ -1,0 +1,33 @@
+#!/bin/bash
+##################################
+## /etc/local.d/cloud-init.start #
+##################################
+
+function _network_config {
+    wget -O /etc/local.d/user-data \
+        http://169.254.169.254/latest/user-data
+    wget -O /tmp/openssh-key \
+        http://169.254.169.254/latest/meta-data/public-keys/0/openssh-key
+
+    _file_config
+}
+
+function _file_config {
+    mkdir -p /root/.ssh && \
+    mv /tmp/openssh-key /root/.ssh/authorized_keys && \
+    chmod u=rX,go= -R /root/.ssh
+    
+    test _"$(head -c2 /etc/local.d/user-data)" == '_#!' && {
+        chmod +x /etc/local.d/user-data
+        exec /etc/local.d/user-data
+    }
+}
+
+##############################################################
+ping -c 1 169.254.169.254 2>&1 >/dev/null && {
+        echo "Attempting autoconfiguration by local network"
+        _network_config
+} || {
+        echo "Attempting autoconfiguration by local file"
+        _file_config
+}

@@ -93,3 +93,5 @@ index ca9c9c1..df832db 100644
  operator:*:9797:0:::::
  shutdown:*:9797:0:::::
 EOF_PATCH
+
+cp $(dirname "${BASH_SOURCE[0]}")/cloud-init.start etc/local.d/
