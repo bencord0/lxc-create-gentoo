@@ -142,3 +142,21 @@ Read the /etc/lxc/lxc-create-gentoo script
 Since it will be run as root, make sure that the script doesn't do anything
 too crazy. You have been warned.
 
+Advanced Usage
+==============
+
+The container will attach itself to the network bridge `br0` on the host, get IPv4 and IPv6 addresses
+and hopefully register itself in DNS. If the network is available and sshd starts, it is possible to
+connect to the container (don't forget to verify the ssh fingerprints!). The shell will auto login as
+root, so you could set a password but a better approach would be to use ssh keys.
+
+The -k <keyfile> option can be used to copy an authorized_keys file to the /root/.ssh/authorized_keys inside
+the container.
+
+Many cloud providers have the notion of user-data scripts.
+    - http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AESDG-chapter-instancedata.html
+    - http://docs.openstack.org/trunk/openstack-compute/admin/content/user-data.html
+
+There is a cloud-init.start script which is run late in the boot process (so that network is available).
+You can provide a file (or script that begins with "#!") with the -u <userdata> option.
+
