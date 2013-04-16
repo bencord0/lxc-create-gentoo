@@ -3,6 +3,7 @@ ln -s net.lo etc/init.d/net.eth0
 ln -s /etc/init.d/net.eth0 etc/runlevels/boot/net.eth0
 rm -f etc/runlevels/default/netmount
 mkdir -p etc/portage
+mkdir -p usr/portage
 
 patch -E -p1 -u << EOF_PATCH
 diff --git a/etc/fstab b/etc/fstab
