@@ -17,7 +17,8 @@ function _file_config {
     mv /etc/local.d/openssh-key /root/.ssh/authorized_keys && \
     chmod u=rX,go= -R /root/.ssh
     
-    test _"$(head -c2 /etc/local.d/user-data)" == '_#!' && {
+    test -f "/etc/local.d/user-data" && \
+        test _"$(head -c2 /etc/local.d/user-data)" == '_#!' && {
         chmod +x /etc/local.d/user-data
         exec /etc/local.d/user-data
     }
