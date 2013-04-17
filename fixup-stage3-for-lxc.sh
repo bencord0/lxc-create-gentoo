@@ -1,9 +1,9 @@
-ln -s /etc/init.d/sshd etc/runlevels/default/sshd
-ln -s net.lo etc/init.d/net.eth0
-ln -s /etc/init.d/net.eth0 etc/runlevels/boot/net.eth0
-rm -f etc/runlevels/default/netmount
-mkdir -p etc/portage
-mkdir -p usr/portage
+ln -vs /etc/init.d/sshd etc/runlevels/default/sshd
+ln -vs net.lo etc/init.d/net.eth0
+ln -vs /etc/init.d/net.eth0 etc/runlevels/boot/net.eth0
+rm -vf etc/runlevels/default/netmount
+mkdir -vp etc/portage
+mkdir -vp usr/portage
 
 patch -E -p1 -u << EOF_PATCH
 diff --git a/etc/fstab b/etc/fstab
@@ -95,4 +95,4 @@ index ca9c9c1..df832db 100644
  shutdown:*:9797:0:::::
 EOF_PATCH
 
-cp $(dirname "${BASH_SOURCE[0]}")/cloud-init.start etc/local.d/
+cp -v $(dirname "${BASH_SOURCE[0]}")/cloud-init.start etc/local.d/
