@@ -20,7 +20,7 @@ function _file_config {
     }
     
     test -f "/etc/local.d/user-data" && \
-        test _"$(head -c2 /etc/local.d/user-data)" == '_#!' && {
+    test _"$(head -c2 /etc/local.d/user-data)" == '_#!' && {
         chmod +x /etc/local.d/user-data
         exec /etc/local.d/user-data
     }
