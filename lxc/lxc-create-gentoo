@@ -51,10 +51,11 @@ echo "LXC_ROOT is $LXC_ROOT"
 uts="$(uuidgen|cut -d- -f1)"
 echo "Creating container: $uts"
 
+MAC=$(openssl rand -h^C 6|sed 's/\(xx\)/\1:/g; s/.$//')
 cd "$LXC_ROOT"
 mkdir -p "${LXC_ROOT}/${uts}/rootfs"
-sed "s/++NAME++/${uts}/" "${LXC_ROOT}/.lxc-template/config" \
-	> "${LXC_ROOT}/${uts}/config"
+sed "s/++NAME++/${uts}/; s/++MAC++/${MAC}/;" \
+    "${LXC_ROOT}/.lxc-template/config" > "${LXC_ROOT}/${uts}/config"
 
 lvcreate -s vg/lxc-clean -n "${uts}" -L 10G
 

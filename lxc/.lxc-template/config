@@ -4,6 +4,7 @@ lxc.utsname = ++NAME++
 lxc.network.type = veth
 lxc.network.flags = up
 lxc.network.link = br0
+lxc.network.hwaddr = ++MAC++
 
 lxc.mount.entry=dev  dev     devtmpfs defaults 0 0
 lxc.mount.entry=devpts dev/pts devpts defaults 0 0
