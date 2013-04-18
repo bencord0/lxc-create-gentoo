@@ -64,8 +64,10 @@ lvcreate -s vg/lxc-clean -n "${uts}" -L 10G
 ############################
 mountdir=$(mktemp -d)
 mount "/dev/vg/${uts}" $mountdir
-cp "$SSH_KEYS"  $mountdir/etc/local.d/openssh-key
-cp "$USER_DATA" $mountdir/etc/local.d/user-data
+test x"$SSH_KEYS" = "x" || \
+	cp "$SSH_KEYS"  $mountdir/etc/local.d/openssh-key
+test x"$USER_DATA" = "x" || \
+	cp "$USER_DATA" $mountdir/etc/local.d/user-data
 umount $mountdir
 
 ############################
