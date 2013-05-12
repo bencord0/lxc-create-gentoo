@@ -1,4 +1,4 @@
-lxc.rootfs = /dev/vg/++NAME++
+lxc.rootfs = /dev/++VG++/++NAME++
 lxc.utsname = ++NAME++
 
 lxc.network.type = veth
