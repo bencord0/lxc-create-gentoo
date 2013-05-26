@@ -14,6 +14,12 @@ function _network_config {
 
 function _file_config {
     test -f "/etc/local.d/openssh-key" && {
+        test -d "/home/ec2-user" && {
+            mkdir -p /home/ec2-user/.ssh
+            cp /etc/local.d/openssh-key /home/ec2-user/.ssh/authorized_keys
+            chmod u=rX,go= -R /home/ec2-user/.ssh
+            chown ec2-user:ec2-user -R /home/ec2-user/.ssh
+        }
         mkdir -p /root/.ssh
         mv /etc/local.d/openssh-key /root/.ssh/authorized_keys
         chmod u=rX,go= -R /root/.ssh
