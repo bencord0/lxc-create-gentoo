@@ -8,6 +8,8 @@ function _network_config {
         http://169.254.169.254/latest/user-data
     wget -O /etc/local.d/openssh-key \
         http://169.254.169.254/latest/meta-data/public-keys/0/openssh-key
+    wget -O /etc/local.d/hostname \
+        http://169.254.169.254/latest/meta-data/hostname
 
     _file_config
 }
@@ -30,6 +32,14 @@ function _file_config {
         chmod +x /etc/local.d/user-data
         exec /etc/local.d/user-data
     }
+
+    test -f "/etc/local.d/hostname" && \
+    test -n "$(cat /etc/local.d/hostname)" && {
+        HOSTNAME=$(cat /etc/local.d/hostname)
+        echo "HOSTNAME=\"$HOSTNAME\"" > /etc/conf.d/hostname
+        /etc/init.d/hostname restart
+    }
+    
 }
 
 ##############################################################
