@@ -1,5 +1,5 @@
 [Unit]
-Description=cloud-init script to configure nodes on boot
+Description=cloud-init script
 
 [Service]
 ExecStart=/usr/sbin/cloud-init
