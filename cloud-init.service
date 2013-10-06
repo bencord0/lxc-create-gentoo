@@ -1,0 +1,8 @@
+[Unit]
+Description=cloud-init script to configure nodes on boot
+
+[Service]
+ExecStart=/usr/sbin/cloud-init
+
+[Install]
+WantedBy=multi-user.target
