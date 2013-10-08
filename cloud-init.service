@@ -1,5 +1,6 @@
 [Unit]
 Description=cloud-init script
+After=network.target
 
 [Service]
 ExecStart=/usr/sbin/cloud-init
