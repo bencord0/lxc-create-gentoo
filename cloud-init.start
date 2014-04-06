@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2013 Ben Cordero
+# Copyright 2014 Ben Cordero
 #
 # This file is part of lxc-create-gentoo.
 #
@@ -21,13 +21,32 @@
 ## /etc/local.d/cloud-init.start #
 ##################################
 
+CMDLINE=$(cat /proc/cmdline)
+for x in ${CMDLINE}
+do
+    case "${x}" in
+        cloud_init=*)
+            CLOUD_INIT_HOST=${x#*=}
+            ;;
+        cloud_init_retries=*)
+            CLOUD_INIT_RETRIES=${x#*=} 
+	    ;;
+        *)
+            ;;
+    esac
+done
+
+CLOUD_INIT_HOST=${CLOUD_INIT_HOST:=169.254.169.254}
+CLOUD_INIT_HOST_IP=$(echo ${CLOUD_INIT_HOST}|cut -d'/' -f1|cut -d':' -f1)
+CLOUD_INIT_RETRIES=${CLOUD_INIT_RETRIES:=5}
+
 function _network_config {
     wget -O /etc/local.d/user-data \
-        http://169.254.169.254/latest/user-data
+        http://${CLOUD_INIT_HOST}/latest/user-data
     wget -O /etc/local.d/openssh-key \
-        http://169.254.169.254/latest/meta-data/public-keys/0/openssh-key
+        http://${CLOUD_INIT_HOST}/latest/meta-data/public-keys/0/openssh-key
     wget -O /etc/local.d/hostname \
-        http://169.254.169.254/latest/meta-data/hostname
+        http://${CLOUD_INIT_HOST}/latest/meta-data/hostname
 
     _file_config
 }
@@ -37,30 +56,53 @@ function _file_config {
     test -n "$(cat /etc/local.d/hostname)" && {
         HOSTNAME=$(cut -d '.' -f1 /etc/local.d/hostname)
         echo "HOSTNAME=\"$HOSTNAME\"" > /etc/conf.d/hostname
-        /etc/init.d/hostname restart
+        echo "$HOSTNAME" > /etc/hostname
+        /etc/init.d/hostname restart || hostnamectl set-hostname "$HOSTNAME"
     }
-    
+
     test -f "/etc/local.d/openssh-key" && {
-        test -d "/home/ec2-user" && {
-            mkdir -p /home/ec2-user/.ssh
-            cp /etc/local.d/openssh-key /home/ec2-user/.ssh/authorized_keys
-            chmod u=rX,go= -R /home/ec2-user/.ssh
-            chown ec2-user:ec2-user -R /home/ec2-user/.ssh
+        for KEYUSER in admin ec2-user; do
+        test -d "/home/${KEYUSER}" && {
+            mkdir -p /home/"${KEYUSER}"/.ssh
+            cp /etc/local.d/openssh-key /home/"${KEYUSER}"/.ssh/authorized_keys
+            chmod u=rX,go= -R /home/"${KEYUSER}"/.ssh
+            chown "${KEYUSER}":"${KEYUSER}" -R /home/"${KEYUSER}"/.ssh
         }
+        done
         mkdir -p /root/.ssh
-        mv /etc/local.d/openssh-key /root/.ssh/authorized_keys
+        cp /etc/local.d/openssh-key /root/.ssh/authorized_keys
         chmod u=rX,go= -R /root/.ssh
     }
-    
+
     test -f "/etc/local.d/user-data" && \
     test _"$(head -c2 /etc/local.d/user-data)" == '_#!' && {
         chmod +x /etc/local.d/user-data
         exec /etc/local.d/user-data
     } || true
+
+    rm -f /etc/local.d/{user-data,openssh-key,hostname}
 }
 
 ##############################################################
-ping -c 1 169.254.169.254 2>&1 >/dev/null && {
+
+# Wait for networking
+net_is_ready () {
+    ip a|grep -v -e 127.0.0.1 -e ::1 -e fe80::|grep inet \
+    && (ip r | grep default \
+    )||(ip -6 r | grep default) \
+    && (ping -c 1 "${CLOUD_INIT_HOST_IP}" \
+    )||(ping6 -c 1 "${CLOUD_INIT_HOST_IP}"
+}
+
+while [ "${CLOUD_INIT_RETRIES}" != '0' ]
+do
+	CLOUD_INIT_RETRIES=$[CLOUD_INIT_RETRIES-1]
+	net_is_ready && break
+	echo "cloud-init: Waiting for network..."
+	sleep 5
+done
+
+net_is_ready 2>&1 >/dev/null && {
         echo "Attempting autoconfiguration by local network"
         _network_config
 } || {
