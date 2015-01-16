@@ -91,7 +91,7 @@ net_is_ready () {
     && (ip r | grep default \
     )||(ip -6 r | grep default) \
     && (ping -c 1 "${CLOUD_INIT_HOST_IP}" \
-    )||(ping6 -c 1 "${CLOUD_INIT_HOST_IP}"
+    )||(ping6 -c 1 "${CLOUD_INIT_HOST_IP}")
 }
 
 while [ "${CLOUD_INIT_RETRIES}" != '0' ]
