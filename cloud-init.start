@@ -55,7 +55,8 @@ function _file_config {
     test -f "/etc/local.d/hostname" && \
     test -n "$(cat /etc/local.d/hostname)" && {
         HOSTNAME=$(cut -d '.' -f1 /etc/local.d/hostname)
-        echo "HOSTNAME=\"$HOSTNAME\"" > /etc/conf.d/hostname
+        echo "# Set to the fully-qualified hostname of this machine" > /etc/conf.d/hostname
+        echo "hostname=\"$HOSTNAME\"" >> /etc/conf.d/hostname
         echo "$HOSTNAME" > /etc/hostname
         /etc/init.d/hostname restart || hostnamectl set-hostname "$HOSTNAME"
     }
